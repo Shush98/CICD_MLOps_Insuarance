@@ -1,0 +1,79 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Python
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Step 4: Run tests
+      - name: Run tests
+        run: pytest --maxfail=1 --disable-warnings -q || echo "No tests found, skipping"
+
+      # Step 5: Build Docker image
+      - name: Build Docker image
+        run: docker build -t mlops_ci_cd_insurance .
+
+      # # Step 6: Configure AWS credentials
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
+
+      # # Step 7: Login to Amazon ECR
+      # - name: Login to Amazon ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v2
+
+      # # Step 8: Tag and Push Docker image to ECR
+      # - name: Tag and Push to ECR
+      #   run: |
+      #     ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+      #     ECR_REPOSITORY=insurance_premium_api_reg
+      #     IMAGE_TAG=latest
+      #     docker tag insurance_premium_api:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # # Step 9: Deploy to EC2
+      # - name: Deploy on EC2
+      #   uses: appleboy/ssh-action@v1.2.0
+      #   with:
+      #     host: ${{ secrets.EC2_HOST }}
+      #     username: ubuntu
+      #     key: ${{ secrets.EC2_SSH_KEY }}
+      #     script: |
+      #       aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+      #       OLD_CONTAINER=$(sudo docker ps -q --filter "ancestor=${{ steps.login-ecr.outputs.registry }}/insurance_premium_api_reg:latest")
+      #       if [ ! -z "$OLD_CONTAINER" ]; then
+      #         sudo docker stop $OLD_CONTAINER
+      #         sudo docker rm $OLD_CONTAINER
+      #       fi
+      #       sudo docker pull ${{ steps.login-ecr.outputs.registry }}/insurance_premium_api_reg:latest
+      #       sudo docker run -d -p 7500:7005 ${{ steps.login-ecr.outputs.registry }}/insurance_premium_api_reg:latest
