@@ -39,27 +39,27 @@ jobs:
       - name: Build Docker image
         run: docker build -t mlops_ci_cd_insurance .
 
-      # # Step 6: Configure AWS credentials
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
+      # Step 6: Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      # # Step 7: Login to Amazon ECR
-      # - name: Login to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v2
+      # Step 7: Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # # Step 8: Tag and Push Docker image to ECR
-      # - name: Tag and Push to ECR
-      #   run: |
-      #     ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
-      #     ECR_REPOSITORY=insurance_premium_api_reg
-      #     IMAGE_TAG=latest
-      #     docker tag insurance_premium_api:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      # Step 8: Tag and Push Docker image to ECR
+      - name: Tag and Push to ECR
+        run: |
+          ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY=mlops_ci_cd_insurance_reg
+          IMAGE_TAG=latest
+          docker tag mlops_ci_cd_insurance:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       # # Step 9: Deploy to EC2
       # - name: Deploy on EC2
