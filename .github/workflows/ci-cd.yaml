@@ -61,7 +61,7 @@ jobs:
           docker tag mlops_ci_cd_insurance:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # Step 9: Deploy to EC2
+      # Step 9: Deploy to EC2 Instance
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
